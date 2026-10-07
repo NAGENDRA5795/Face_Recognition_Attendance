@@ -36,15 +36,40 @@ DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 MODEL_FILE = os.path.join(BASE_DIR, "face_model.yml")
 LABEL_FILE = os.path.join(BASE_DIR, "labels.npy")
 
+# Haar Cascade file stored inside project
+CASCADE_FILE = os.path.join(
+    BASE_DIR,
+    "haarcascade_frontalface_default.xml"
+)
+
 
 # =========================================================
 # FACE DETECTION
 # =========================================================
 
-CASCADE_FILE = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-
 face_cascade = cv2.CascadeClassifier(CASCADE_FILE)
 
+# Check whether Haar Cascade loaded successfully
+if face_cascade.empty():
+
+    print()
+    print("==========================================")
+    print(" ERROR: Haar Cascade file not loaded")
+    print("==========================================")
+    print("Expected file:")
+    print(CASCADE_FILE)
+    print()
+else:
+
+    print()
+    print("==========================================")
+    print(" Haar Cascade loaded successfully")
+    print("==========================================")
+    print(CASCADE_FILE)
+    print()
+
+
+# Create dataset folder
 os.makedirs(DATASET_DIR, exist_ok=True)
 
 
@@ -124,20 +149,32 @@ def login():
 
     # If already logged in
     if session.get("admin_logged_in"):
-        return redirect(url_for("students"))
+
+        return redirect(
+            url_for("students")
+        )
 
     error = None
 
     if request.method == "POST":
 
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
 
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
 
             session["admin_logged_in"] = True
 
-            return redirect(url_for("students"))
+            return redirect(
+                url_for("students")
+            )
 
         else:
 
@@ -156,9 +193,14 @@ def login():
 @app.route("/logout")
 def logout():
 
-    session.pop("admin_logged_in", None)
+    session.pop(
+        "admin_logged_in",
+        None
+    )
 
-    return redirect(url_for("login"))
+    return redirect(
+        url_for("login")
+    )
 
 
 # =========================================================
@@ -180,14 +222,18 @@ def dashboard():
     total_students = cursor.fetchone()["total"]
 
     # Current date
-    current_date = datetime.now().strftime("%Y-%m-%d")
+    current_date = datetime.now().strftime(
+        "%Y-%m-%d"
+    )
 
     # Present today
     cursor.execute("""
         SELECT COUNT(DISTINCT student_id) AS total
         FROM attendance
         WHERE date = ?
-    """, (current_date,))
+    """, (
+        current_date,
+    ))
 
     present_today = cursor.fetchone()["total"]
 
@@ -236,7 +282,6 @@ def students():
         )
 
     conn = get_db()
-
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -270,13 +315,32 @@ def save_face():
             "message": "Unauthorized. Admin login required."
         }), 401
 
+    # Check Haar Cascade
+    if face_cascade.empty():
+
+        return jsonify({
+            "success": False,
+            "message": "Face detector file not loaded. Check haarcascade_frontalface_default.xml"
+        })
+
     try:
 
         data = request.get_json()
 
-        student_id = data.get("student_id", "").strip()
-        student_name = data.get("student_name", "").strip()
-        image_data = data.get("image", "")
+        student_id = data.get(
+            "student_id",
+            ""
+        ).strip()
+
+        student_name = data.get(
+            "student_name",
+            ""
+        ).strip()
+
+        image_data = data.get(
+            "image",
+            ""
+        )
 
         # VALIDATION
         if not student_id:
@@ -303,10 +367,15 @@ def save_face():
         # REMOVE BASE64 HEADER
         if "," in image_data:
 
-            image_data = image_data.split(",", 1)[1]
+            image_data = image_data.split(
+                ",",
+                1
+            )[1]
 
         # DECODE IMAGE
-        image_bytes = base64.b64decode(image_data)
+        image_bytes = base64.b64decode(
+            image_data
+        )
 
         image_array = np.frombuffer(
             image_bytes,
@@ -355,8 +424,15 @@ def save_face():
         # PADDING
         padding = 20
 
-        x1 = max(0, x - padding)
-        y1 = max(0, y - padding)
+        x1 = max(
+            0,
+            x - padding
+        )
+
+        y1 = max(
+            0,
+            y - padding
+        )
 
         x2 = min(
             gray.shape[1],
@@ -368,7 +444,10 @@ def save_face():
             y + h + padding
         )
 
-        face = gray[y1:y2, x1:x2]
+        face = gray[
+            y1:y2,
+            x1:x2
+        ]
 
         # RESIZE
         face = cv2.resize(
@@ -394,7 +473,9 @@ def save_face():
             if file.lower().endswith(".jpg")
         ]
 
-        image_number = len(existing_images) + 1
+        image_number = len(
+            existing_images
+        ) + 1
 
         image_path = os.path.join(
             student_folder,
@@ -421,7 +502,9 @@ def save_face():
         """, (
             student_id,
             student_name,
-            datetime.now().strftime("%Y-%m-%d")
+            datetime.now().strftime(
+                "%Y-%m-%d"
+            )
         ))
 
         conn.commit()
@@ -473,14 +556,19 @@ def train_model():
 
         label_id = 0
 
-        for student_id in os.listdir(DATASET_DIR):
+        for student_id in os.listdir(
+            DATASET_DIR
+        ):
 
             student_folder = os.path.join(
                 DATASET_DIR,
                 student_id
             )
 
-            if not os.path.isdir(student_folder):
+            if not os.path.isdir(
+                student_folder
+            ):
+
                 continue
 
             conn = get_db()
@@ -490,13 +578,16 @@ def train_model():
                 SELECT *
                 FROM students
                 WHERE student_id = ?
-            """, (student_id,))
+            """, (
+                student_id,
+            ))
 
             student = cursor.fetchone()
 
             conn.close()
 
             if student is None:
+
                 continue
 
             label_names[label_id] = {
@@ -504,9 +595,14 @@ def train_model():
                 "name": student["name"]
             }
 
-            for image_file in os.listdir(student_folder):
+            for image_file in os.listdir(
+                student_folder
+            ):
 
-                if not image_file.lower().endswith(".jpg"):
+                if not image_file.lower().endswith(
+                    ".jpg"
+                ):
+
                     continue
 
                 image_path = os.path.join(
@@ -520,6 +616,7 @@ def train_model():
                 )
 
                 if image is None:
+
                     continue
 
                 image = cv2.resize(
@@ -527,8 +624,13 @@ def train_model():
                     (200, 200)
                 )
 
-                faces.append(image)
-                labels.append(label_id)
+                faces.append(
+                    image
+                )
+
+                labels.append(
+                    label_id
+                )
 
             label_id += 1
 
@@ -592,14 +694,26 @@ def mark_attendance():
 
     try:
 
-        if not os.path.exists(MODEL_FILE):
+        # Check Haar Cascade
+        if face_cascade.empty():
+
+            return jsonify({
+                "success": False,
+                "message": "Face detector file not loaded. Check haarcascade_frontalface_default.xml"
+            })
+
+        if not os.path.exists(
+            MODEL_FILE
+        ):
 
             return jsonify({
                 "success": False,
                 "message": "Face model not found. Train the model first."
             })
 
-        if not os.path.exists(LABEL_FILE):
+        if not os.path.exists(
+            LABEL_FILE
+        ):
 
             return jsonify({
                 "success": False,
@@ -615,7 +729,10 @@ def mark_attendance():
 
         data = request.get_json()
 
-        image_data = data.get("image", "")
+        image_data = data.get(
+            "image",
+            ""
+        )
 
         if not image_data:
 
@@ -626,9 +743,14 @@ def mark_attendance():
 
         if "," in image_data:
 
-            image_data = image_data.split(",", 1)[1]
+            image_data = image_data.split(
+                ",",
+                1
+            )[1]
 
-        image_bytes = base64.b64decode(image_data)
+        image_bytes = base64.b64decode(
+            image_data
+        )
 
         image_array = np.frombuffer(
             image_bytes,
@@ -652,7 +774,9 @@ def mark_attendance():
             cv2.COLOR_BGR2GRAY
         )
 
-        gray = cv2.equalizeHist(gray)
+        gray = cv2.equalizeHist(
+            gray
+        )
 
         faces = face_cascade.detectMultiScale(
             gray,
@@ -673,7 +797,10 @@ def mark_attendance():
             key=lambda rect: rect[2] * rect[3]
         )
 
-        face = gray[y:y+h, x:x+w]
+        face = gray[
+            y:y+h,
+            x:x+w
+        ]
 
         face = cv2.resize(
             face,
@@ -701,7 +828,10 @@ def mark_attendance():
             return jsonify({
                 "success": False,
                 "message": "Face not recognized",
-                "confidence": round(float(confidence), 2)
+                "confidence": round(
+                    float(confidence),
+                    2
+                )
             })
 
         label_info = loaded_labels.get(
@@ -715,15 +845,28 @@ def mark_attendance():
                 "message": "Student label not found"
             })
 
-        if isinstance(label_info, dict):
+        if isinstance(
+            label_info,
+            dict
+        ):
 
-            student_id = label_info["student_id"]
-            student_name = label_info["name"]
+            student_id = label_info[
+                "student_id"
+            ]
+
+            student_name = label_info[
+                "name"
+            ]
 
         else:
 
-            student_id = str(label_info)
-            student_name = str(label_info)
+            student_id = str(
+                label_info
+            )
+
+            student_name = str(
+                label_info
+            )
 
         now = datetime.now()
 
@@ -762,7 +905,10 @@ def mark_attendance():
                 "date": current_date,
                 "time": existing["time"],
                 "status": existing["status"],
-                "confidence": round(float(confidence), 2),
+                "confidence": round(
+                    float(confidence),
+                    2
+                ),
                 "message": "Attendance already marked today"
             })
 
@@ -806,9 +952,16 @@ def mark_attendance():
                 "student_id": student_id,
                 "name": student_name,
                 "date": current_date,
-                "time": existing["time"] if existing else current_time,
-                "status": existing["status"] if existing else "Present",
-                "confidence": round(float(confidence), 2),
+                "time": existing["time"]
+                if existing
+                else current_time,
+                "status": existing["status"]
+                if existing
+                else "Present",
+                "confidence": round(
+                    float(confidence),
+                    2
+                ),
                 "message": "Attendance already marked today"
             })
 
@@ -822,7 +975,10 @@ def mark_attendance():
             "date": current_date,
             "time": current_time,
             "status": "Present",
-            "confidence": round(float(confidence), 2),
+            "confidence": round(
+                float(confidence),
+                2
+            ),
             "message": "Attendance marked successfully"
         })
 
@@ -872,10 +1028,15 @@ def attendance():
 # DELETE ATTENDANCE - ADMIN ONLY
 # =========================================================
 
-@app.route("/delete_attendance/<int:record_id>", methods=["DELETE"])
+@app.route(
+    "/delete_attendance/<int:record_id>",
+    methods=["DELETE"]
+)
 def delete_attendance(record_id):
 
-    if not session.get("admin_logged_in"):
+    if not session.get(
+        "admin_logged_in"
+    ):
 
         return jsonify({
             "success": False,
@@ -889,7 +1050,9 @@ def delete_attendance(record_id):
     cursor.execute("""
         DELETE FROM attendance
         WHERE id = ?
-    """, (record_id,))
+    """, (
+        record_id,
+    ))
 
     conn.commit()
 
@@ -921,10 +1084,35 @@ if __name__ == "__main__":
     print(" Face Recognition Attendance System")
     print("==========================================")
     print()
-    print("Dashboard       : http://127.0.0.1:5000/")
-    print("Login           : http://127.0.0.1:5000/login")
-    print("Students        : http://127.0.0.1:5000/students")
-    print("Start Attendance: http://127.0.0.1:5000/start_attendance")
+
+    print(
+        "Haar Cascade   :",
+        CASCADE_FILE
+    )
+
+    print(
+        "Cascade Loaded :",
+        not face_cascade.empty()
+    )
+
+    print()
+
+    print(
+        "Dashboard       : http://127.0.0.1:5000/"
+    )
+
+    print(
+        "Login           : http://127.0.0.1:5000/login"
+    )
+
+    print(
+        "Students        : http://127.0.0.1:5000/students"
+    )
+
+    print(
+        "Start Attendance: http://127.0.0.1:5000/start_attendance"
+    )
+
     print()
 
     app.run(

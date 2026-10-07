@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Registration</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        video {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            object-fit: cover;
+            background: black;
+            border-radius: 8px;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        #startBtn {
+            background: #198754;
+            color: white;
+        }
+
+        #captureBtn {
+            background: #0d6efd;
+            color: white;
+        }
+
+        #trainBtn {
+            background: #6f42c1;
+            color: white;
+        }
+
+        #stopBtn {
+            background: #dc3545;
+            color: white;
+        }
+
+        button:disabled {
+            background: #aaa !important;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f1f1f1;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .progress {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f1f1;
+        }
+
+        /* =========================
+           NAVIGATION
+        ========================= */
+
+        .nav {
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            font-weight: bold;
+            padding: 9px 14px;
+            border-radius: 6px;
+            background: white;
+            color: #0d6efd;
+        }
+
+        .nav a:hover {
+            background: #0d6efd;
+            color: white;
+        }
+
+        /* =========================
+           ADMIN AREA
+        ========================= */
+
+        .admin-area {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-badge {
+            background: #198754;
+            color: white;
+            padding: 9px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: #dc3545 !important;
+            color: white !important;
+        }
+
+        .logout-btn:hover {
+            background: #bb2d3b !important;
+        }
+
+        @media (max-width: 700px) {
+
+            body {
+                padding: 15px;
+            }
+
+            .nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav a {
+                text-align: center;
+            }
+
+            .admin-area {
+                margin-left: 0;
+                justify-content: center;
+            }
+
+            video {
+                height: 300px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="container">
+
+
+        <!-- =====================================================
+         NAVIGATION
+    ====================================================== -->
+
+        <div class="nav">
+
+            <a href="/">
+                Dashboard
+            </a>
+
+            <a href="/students">
+                Students
+            </a>
+
+            <a href="/start_attendance">
+                Start Attendance
+            </a>
+
+
+            <!-- ADMIN AREA -->
+
+            <div class="admin-area">
+
+                <span class="admin-badge">
+                    🔐 Admin
+                </span>
+
+                <a href="/logout" class="logout-btn">
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+         PAGE TITLE
+    ====================================================== -->
+
+        <h1>
+            Student Registration
+        </h1>
+
+
+        <!-- =====================================================
+         REGISTRATION CARD
+    ====================================================== -->
+
+        <div class="card">
+
+
+            <!-- STUDENT ID -->
+
+            <div class="form-group">
+
+                <label for="studentId">
+                    Student ID
+                </label>
+
+                <input type="text" id="studentId" placeholder="Example: 2026-001">
+
+            </div>
+
+
+            <!-- STUDENT NAME -->
+
+            <div class="form-group">
+
+                <label for="studentName">
+                    Student Name
+                </label>
+
+                <input type="text" id="studentName" placeholder="Example: Nagendra">
+
+            </div>
+
+
+            <!-- =================================================
+             CAMERA
+        ================================================== -->
+
+            <video id="video" autoplay playsinline>
+            </video>
+
+
+            <!-- =================================================
+             BUTTONS
+        ================================================== -->
+
+            <div class="buttons">
+
+                <button id="startBtn" onclick="startCamera()">
+
+                    Start Camera
+
+                </button>
+
+
+                <button id="captureBtn" onclick="captureFace()" disabled>
+
+                    Capture Face
+
+                </button>
+
+
+                <button id="trainBtn" onclick="trainModel()" disabled>
+
+                    Train Face Model
+
+                </button>
+
+
+                <button id="stopBtn" onclick="stopCamera()">
+
+                    Stop Camera
+
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+             PROGRESS
+        ================================================== -->
+
+            <div class="progress">
+
+                Images Captured:
+
+                <span id="count">
+                    0
+                </span>
+
+                / 20
+
+            </div>
+
+
+            <!-- =================================================
+             STATUS
+        ================================================== -->
+
+            <div id="status">
+
+                Enter Student ID and Name first.
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+         REGISTERED STUDENTS
+    ====================================================== -->
+
+        <div class="card">
+
+            <h2>
+                Registered Students
+            </h2>
+
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            ID
+                        </th>
+
+                        <th>
+                            Student ID
+                        </th>
+
+                        <th>
+                            Name
+                        </th>
+
+                        <th>
+                            Registered Date
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for student in students %}
+
+                    <tr>
+
+                        <td>
+                            {{ student.id }}
+                        </td>
+
+                        <td>
+                            {{ student.student_id }}
+                        </td>
+
+                        <td>
+                            {{ student.name }}
+                        </td>
+
+                        <td>
+                            {{ student.registered_date }}
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td colspan="4">
+                            No students registered yet.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+    <script>
+
+
+        // =====================================================
+        // VARIABLES
+        // =====================================================
+
+        let video =
+            document.getElementById("video");
+
+        let stream = null;
+
+        let capturedImages = 0;
+
+        const maxImages = 20;
+
+
+        // =====================================================
+        // START CAMERA
+        // =====================================================
+
+        async function startCamera() {
+
+            try {
+
+                const studentId =
+                    document
+                        .getElementById("studentId")
+                        .value
+                        .trim();
+
+
+                const studentName =
+                    document
+                        .getElementById("studentName")
+                        .value
+                        .trim();
+
+
+                if (!studentId || !studentName) {
+
+                    setStatus(
+                        "Please enter Student ID and Student Name.",
+                        true
+                    );
+
+                    return;
+
+                }
+
+
+                stream =
+                    await navigator.mediaDevices.getUserMedia({
+
+                        video: true,
+
+                        audio: false
+
+                    });
+
+
+                video.srcObject = stream;
+
+
+                document
+                    .getElementById("captureBtn")
+                    .disabled = false;
+
+
+                setStatus(
+                    "Camera started. Keep your face clearly visible."
+                );
+
+            }
+
+
+            catch (error) {
+
+                console.error(error);
+
+
+                setStatus(
+                    "Camera access denied or camera not available.",
+                    true
+                );
+
+            }
+
+        }
+
+
+        // =====================================================
+        // CAPTURE FACE
+        // =====================================================
+
+        async function captureFace() {
+
+
+            const studentId =
+                document
+                    .getElementById("studentId")
+                    .value
+                    .trim();
+
+
+            const studentName =
+                document
+                    .getElementById("studentName")
+                    .value
+                    .trim();
+
+
+            if (!studentId || !studentName) {
+
+                setStatus(
+                    "Please enter Student ID and Name.",
+                    true
+                );
+
+                return;
+
+            }
+
+
+            if (!stream) {
+
+                setStatus(
+                    "Please start the camera first.",
+                    true
+                );
+
+                return;
+
+            }
+
+
+            if (capturedImages >= maxImages) {
+
+                setStatus(
+                    "20 images already captured."
+                );
+
+                return;
+
+            }
+
+
+            // =================================================
+            // CREATE CANVAS
+            // =================================================
+
+            const canvas =
+                document.createElement("canvas");
+
+
+            canvas.width =
+                video.videoWidth;
+
+
+            canvas.height =
+                video.videoHeight;
+
+
+            const context =
+                canvas.getContext("2d");
+
+
+            context.drawImage(
+                video,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            // =================================================
+            // CONVERT IMAGE TO BASE64
+            // =================================================
+
+            const image =
+                canvas.toDataURL("image/jpeg");
+
+
+            // =================================================
+            // SEND TO FLASK
+            // =================================================
+
+            try {
+
+                setStatus(
+                    "Saving face image..."
+                );
+
+
+                const response =
+                    await fetch(
+                        "/save_face",
+                        {
+
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json"
+
+                            },
+
+                            body: JSON.stringify({
+
+                                student_id:
+                                    studentId,
+
+                                student_name:
+                                    studentName,
+
+                                image:
+                                    image
+
+                            })
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (data.success) {
+
+
+                    capturedImages++;
+
+
+                    document
+                        .getElementById("count")
+                        .textContent =
+                        capturedImages;
+
+
+                    setStatus(
+                        data.message
+                    );
+
+
+                    // =========================================
+                    // 20 IMAGES COMPLETED
+                    // =========================================
+
+                    if (
+                        capturedImages >=
+                        maxImages
+                    ) {
+
+
+                        document
+                            .getElementById("captureBtn")
+                            .disabled = true;
+
+
+                        document
+                            .getElementById("trainBtn")
+                            .disabled = false;
+
+
+                        setStatus(
+                            "20 images captured. Now click Train Face Model."
+                        );
+
+                    }
+
+                }
+
+
+                else {
+
+                    setStatus(
+                        data.message,
+                        true
+                    );
+
+                }
+
+            }
+
+
+            catch (error) {
+
+                console.error(error);
+
+
+                setStatus(
+                    "Error connecting to server.",
+                    true
+                );
+
+            }
+
+        }
+
+
+        // =====================================================
+        // TRAIN MODEL
+        // =====================================================
+
+        async function trainModel() {
+
+
+            try {
+
+                setStatus(
+                    "Training face recognition model..."
+                );
+
+
+                const response =
+                    await fetch(
+                        "/train_model",
+                        {
+
+                            method: "POST"
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (data.success) {
+
+
+                    setStatus(
+
+                        data.message +
+
+                        " | Images: " +
+
+                        data.images +
+
+                        " | Students: " +
+
+                        data.students
+
+                    );
+
+                }
+
+
+                else {
+
+                    setStatus(
+                        data.message,
+                        true
+                    );
+
+                }
+
+            }
+
+
+            catch (error) {
+
+                console.error(error);
+
+
+                setStatus(
+                    "Model training failed.",
+                    true
+                );
+
+            }
+
+        }
+
+
+        // =====================================================
+        // STOP CAMERA
+        // =====================================================
+
+        function stopCamera() {
+
+
+            if (stream) {
+
+
+                stream
+                    .getTracks()
+                    .forEach(
+                        track =>
+                            track.stop()
+                    );
+
+
+                stream = null;
+
+            }
+
+
+            video.srcObject = null;
+
+
+            document
+                .getElementById("captureBtn")
+                .disabled = true;
+
+
+            setStatus(
+                "Camera stopped."
+            );
+
+        }
+
+
+        // =====================================================
+        // STATUS MESSAGE
+        // =====================================================
+
+        function setStatus(
+            message,
+            error = false
+        ) {
+
+
+            const status =
+                document
+                    .getElementById("status");
+
+
+            status.textContent =
+                message;
+
+
+            if (error) {
+
+                status.style.color =
+                    "red";
+
+            }
+
+            else {
+
+                status.style.color =
+                    "green";
+
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>

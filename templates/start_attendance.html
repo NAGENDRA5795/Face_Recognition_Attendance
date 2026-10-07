@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Start Attendance</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .navbar {
+            background: #1f2937;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            color: white;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .camera-box {
+            text-align: center;
+        }
+
+        video {
+            width: 100%;
+            max-width: 700px;
+            height: 450px;
+            object-fit: cover;
+            background: black;
+            border-radius: 10px;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            padding: 12px 22px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #startBtn {
+            background: #198754;
+            color: white;
+        }
+
+        #markBtn {
+            background: #0d6efd;
+            color: white;
+        }
+
+        #stopBtn {
+            background: #dc3545;
+            color: white;
+        }
+
+        button:disabled {
+            background: #aaa !important;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 25px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .result p {
+            margin: 10px 0;
+            font-size: 17px;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .waiting {
+            color: #666;
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+     NAVBAR
+===================================================== -->
+
+    <nav class="navbar">
+
+        <h2>Attendance System</h2>
+
+        <div>
+
+            <a href="/">Dashboard</a>
+
+            <a href="/students">Students</a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =====================================================
+     MAIN
+===================================================== -->
+
+    <div class="container">
+
+        <div class="card">
+
+            <h1>Start Attendance</h1>
+
+
+            <!-- CAMERA -->
+
+            <div class="camera-box">
+
+                <video id="video" autoplay playsinline>
+                </video>
+
+
+                <!-- BUTTONS -->
+
+                <div class="buttons">
+
+                    <button id="startBtn" onclick="startCamera()">
+
+                        Start Camera
+
+                    </button>
+
+
+                    <button id="markBtn" onclick="markAttendance()" disabled>
+
+                        Mark Attendance
+
+                    </button>
+
+
+                    <button id="stopBtn" onclick="stopCamera()">
+
+                        Stop Camera
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+             RESULT
+        ================================================== -->
+
+            <div class="result">
+
+                <p>
+                    Student ID:
+                    <strong id="studentId">---</strong>
+                </p>
+
+                <p>
+                    Name:
+                    <strong id="studentName">---</strong>
+                </p>
+
+                <p>
+                    Date:
+                    <strong id="date">---</strong>
+                </p>
+
+                <p>
+                    Time:
+                    <strong id="time">---</strong>
+                </p>
+
+                <p>
+                    Status:
+                    <strong id="status" class="waiting">
+                        Waiting...
+                    </strong>
+                </p>
+
+                <p>
+                    Confidence:
+                    <strong id="confidence">---</strong>
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+
+        // =========================================================
+        // VARIABLES
+        // =========================================================
+
+        let video =
+            document.getElementById("video");
+
+        let stream = null;
+
+
+        // =========================================================
+        // START CAMERA
+        // =========================================================
+
+        async function startCamera() {
+
+            try {
+
+                stream =
+                    await navigator.mediaDevices.getUserMedia({
+
+                        video: true,
+
+                        audio: false
+
+                    });
+
+
+                video.srcObject = stream;
+
+
+                document.getElementById("markBtn").disabled =
+                    false;
+
+
+                setStatus(
+                    "Camera started. Look at the camera.",
+                    "waiting"
+                );
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+                setStatus(
+                    "Camera access denied or unavailable.",
+                    "error"
+                );
+
+            }
+
+        }
+
+
+        // =========================================================
+        // MARK ATTENDANCE
+        // =========================================================
+
+        async function markAttendance() {
+
+            if (!stream) {
+
+                setStatus(
+                    "Please start the camera first.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            // -----------------------------------------------------
+            // CREATE CANVAS
+            // -----------------------------------------------------
+
+            const canvas =
+                document.createElement("canvas");
+
+
+            canvas.width =
+                video.videoWidth;
+
+            canvas.height =
+                video.videoHeight;
+
+
+            const context =
+                canvas.getContext("2d");
+
+
+            context.drawImage(
+                video,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            // -----------------------------------------------------
+            // CONVERT TO BASE64
+            // -----------------------------------------------------
+
+            const image =
+                canvas.toDataURL("image/jpeg");
+
+
+            setStatus(
+                "Recognizing face...",
+                "waiting"
+            );
+
+
+            try {
+
+                // -------------------------------------------------
+                // SEND IMAGE TO FLASK
+                // -------------------------------------------------
+
+                const response =
+                    await fetch("/mark_attendance", {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            image: image
+
+                        })
+
+                    });
+
+
+                const data =
+                    await response.json();
+
+
+                // -------------------------------------------------
+                // SUCCESS
+                // -------------------------------------------------
+
+                if (data.success) {
+
+                    document.getElementById("studentId")
+                        .textContent =
+                        data.student_id || "---";
+
+
+                    document.getElementById("studentName")
+                        .textContent =
+                        data.name || "---";
+
+
+                    document.getElementById("date")
+                        .textContent =
+                        data.date || "---";
+
+
+                    document.getElementById("time")
+                        .textContent =
+                        data.time || "---";
+
+
+                    document.getElementById("confidence")
+                        .textContent =
+                        data.confidence !== undefined
+                            ? data.confidence
+                            : "---";
+
+
+                    if (data.already_present) {
+
+                        setStatus(
+                            "Attendance already marked today.",
+                            "waiting"
+                        );
+
+                    }
+
+                    else {
+
+                        setStatus(
+                            "Attendance marked successfully!",
+                            "success"
+                        );
+
+                    }
+
+                }
+
+                else {
+
+                    setStatus(
+                        data.message || "Face not recognized.",
+                        "error"
+                    );
+
+                }
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+                setStatus(
+                    "Server connection error.",
+                    "error"
+                );
+
+            }
+
+        }
+
+
+        // =========================================================
+        // STOP CAMERA
+        // =========================================================
+
+        function stopCamera() {
+
+            if (stream) {
+
+                stream.getTracks().forEach(
+                    track => track.stop()
+                );
+
+                stream = null;
+
+            }
+
+
+            video.srcObject = null;
+
+
+            document.getElementById("markBtn").disabled =
+                true;
+
+
+            setStatus(
+                "Camera stopped.",
+                "waiting"
+            );
+
+        }
+
+
+        // =========================================================
+        // STATUS
+        // =========================================================
+
+        function setStatus(message, type) {
+
+            const status =
+                document.getElementById("status");
+
+
+            status.textContent =
+                message;
+
+
+            status.className =
+                type;
+
+        }
+
+
+    </script>
+
+
+</body>
+
+</html>
